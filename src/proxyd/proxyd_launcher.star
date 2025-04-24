@@ -24,10 +24,13 @@ CONFIG_TEMPLATE_FILEPATH = "{0}/{1}.tmpl".format(TEMPLATES_FILEPATH, CONFIG_FILE
 CONFIG_DIRPATH_ON_SERVICE = "/etc/proxyd"
 
 
-def get_used_ports():
+def get_used_ports(proxyd_params):
+    rpc_port = (
+        proxyd_params.rpc_port if hasattr(proxyd_params, "rpc_port") else HTTP_PORT_NUM
+    )
     used_ports = {
         constants.HTTP_PORT_ID: ethereum_package_shared_utils.new_port_spec(
-            HTTP_PORT_NUM,
+            rpc_port,
             ethereum_package_shared_utils.TCP_PROTOCOL,
             ethereum_package_shared_utils.HTTP_APPLICATION_PROTOCOL,
         ),
@@ -50,6 +53,7 @@ def launch(
         network_params,
         el_contexts,
         observability_helper,
+        proxyd_params,
     )
 
     config = get_proxyd_config(
@@ -62,9 +66,10 @@ def launch(
     service = plan.add_service("proxyd-{0}".format(network_params.network_id), config)
     service_url = util.make_service_http_url(service)
 
-    observability.register_op_service_metrics_job(
-        observability_helper, service, network_params.network
-    )
+    if observability_helper.enabled:
+        observability.register_op_service_metrics_job(
+            observability_helper, service, network_params.network
+        )
 
     return service_url
 
@@ -75,14 +80,24 @@ def create_config_artifact(
     network_params,
     el_contexts,
     observability_helper,
+    proxyd_params,
 ):
+    rpc_port = (
+        proxyd_params.rpc_port if hasattr(proxyd_params, "rpc_port") else HTTP_PORT_NUM
+    )
+    metrics_port = (
+        proxyd_params.metrics_port
+        if hasattr(proxyd_params, "metrics_port")
+        else METRICS_PORT_NUM
+    )
+
     config_data = {
         "Ports": {
-            "rpc": HTTP_PORT_NUM,
+            "rpc": rpc_port,
         },
         "Metrics": {
             "enabled": observability_helper.enabled,
-            "port": METRICS_PORT_NUM,
+            "port": metrics_port,
         },
         "Replicas": {
             "{0}-{1}".format(el_context.client_name, num): el_context.rpc_http_url
@@ -110,7 +125,7 @@ def get_proxyd_config(
     config_artifact_name,
     observability_helper,
 ):
-    ports = dict(get_used_ports())
+    ports = dict(get_used_ports(proxyd_params))
 
     cmd = [
         "proxyd",
@@ -118,9 +133,13 @@ def get_proxyd_config(
     ]
 
     # apply customizations
-
     if observability_helper.enabled:
-        observability.expose_metrics_port(ports, port_num=METRICS_PORT_NUM)
+        metrics_port = (
+            proxyd_params.metrics_port
+            if hasattr(proxyd_params, "metrics_port")
+            else METRICS_PORT_NUM
+        )
+        observability.expose_metrics_port(ports, port_num=metrics_port)
 
     cmd += proxyd_params.extra_params
 

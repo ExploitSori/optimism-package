@@ -36,6 +36,10 @@ DEFAULT_PROPOSER_IMAGES = {
     "op-proposer": "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-proposer:develop",
 }
 
+DEFAULT_PROXYD_IMAGES = {
+    "proxyd": "us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd:v4.14.2",
+}
+
 DEFAULT_SIDECAR_IMAGES = {
     "rollup-boost": "flashbots/rollup-boost:latest",
 }
@@ -774,9 +778,11 @@ def default_batcher_params():
 
 
 def default_proxyd_params():
+    image_with_tag = DEFAULT_PROXYD_IMAGES["proxyd"]
+    image, tag = image_with_tag.split(":")
     return {
-        "image": "us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd",
-        "tag": "v4.14.2",
+        "image": image,
+        "tag": tag,
         "extra_params": [],
     }
 
