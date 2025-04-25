@@ -193,60 +193,6 @@ def test_launch_with_metrics_disabled(plan):
     expect.eq("metrics" in proxyd_service_config.ports, False)
 
 
-def test_launch_with_custom_ports(plan):
-    """Test launching the proxyd service with custom ports."""
-    proxyd_image = input_parser.DEFAULT_PROXYD_IMAGES["proxyd"]
-
-    parsed_input_args = input_parser.input_parser(
-        plan,
-        {
-            "chains": [
-                {
-                    "network_params": {
-                        "network_id": "1",
-                        "network": "testnet",
-                    },
-                }
-            ],
-        },
-    )
-
-    proxyd_params = struct(
-        image=proxyd_image,
-        replicas={
-            "replica1": "http://replica1:8545",
-        },
-        extra_params=[],
-        tag="latest",
-        rpc_port=1234,
-        metrics_port=5678,
-    )
-
-    network_params = parsed_input_args.chains[0].network_params
-
-    el_contexts = [
-        struct(
-            client_name="replica1",
-            rpc_http_url="http://replica1:8545",
-        )
-    ]
-
-    observability_helper = observability.make_helper(parsed_input_args.observability)
-
-    proxyd_launcher.launch(
-        plan=plan,
-        proxyd_params=proxyd_params,
-        network_params=network_params,
-        el_contexts=el_contexts,
-        observability_helper=observability_helper,
-    )
-
-    proxyd_service_config = kurtosistest.get_service_config(service_name="proxyd-1")
-    expect.ne(proxyd_service_config, None)
-    expect.eq(proxyd_service_config.ports[constants.HTTP_PORT_ID].number, 1234)
-    expect.eq(proxyd_service_config.ports["metrics"].number, 5678)
-
-
 def test_launch_with_extra_params(plan):
     """Test launching the proxyd service with extra command line parameters."""
     proxyd_image = "us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd"

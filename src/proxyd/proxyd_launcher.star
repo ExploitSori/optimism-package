@@ -24,18 +24,14 @@ CONFIG_TEMPLATE_FILEPATH = "{0}/{1}.tmpl".format(TEMPLATES_FILEPATH, CONFIG_FILE
 CONFIG_DIRPATH_ON_SERVICE = "/etc/proxyd"
 
 
-def get_used_ports(proxyd_params):
-    rpc_port = (
-        proxyd_params.rpc_port if hasattr(proxyd_params, "rpc_port") else HTTP_PORT_NUM
-    )
-    used_ports = {
+def get_used_ports():
+    return {
         constants.HTTP_PORT_ID: ethereum_package_shared_utils.new_port_spec(
-            rpc_port,
+            HTTP_PORT_NUM,
             ethereum_package_shared_utils.TCP_PROTOCOL,
             ethereum_package_shared_utils.HTTP_APPLICATION_PROTOCOL,
         ),
     }
-    return used_ports
 
 
 def launch(
@@ -53,7 +49,6 @@ def launch(
         network_params,
         el_contexts,
         observability_helper,
-        proxyd_params,
     )
 
     config = get_proxyd_config(
@@ -80,24 +75,14 @@ def create_config_artifact(
     network_params,
     el_contexts,
     observability_helper,
-    proxyd_params,
 ):
-    rpc_port = (
-        proxyd_params.rpc_port if hasattr(proxyd_params, "rpc_port") else HTTP_PORT_NUM
-    )
-    metrics_port = (
-        proxyd_params.metrics_port
-        if hasattr(proxyd_params, "metrics_port")
-        else METRICS_PORT_NUM
-    )
-
     config_data = {
         "Ports": {
-            "rpc": rpc_port,
+            "rpc": HTTP_PORT_NUM,
         },
         "Metrics": {
             "enabled": observability_helper.enabled,
-            "port": metrics_port,
+            "port": METRICS_PORT_NUM,
         },
         "Replicas": {
             "{0}-{1}".format(el_context.client_name, num): el_context.rpc_http_url
@@ -125,7 +110,7 @@ def get_proxyd_config(
     config_artifact_name,
     observability_helper,
 ):
-    ports = dict(get_used_ports(proxyd_params))
+    ports = dict(get_used_ports())
 
     cmd = [
         "proxyd",
@@ -134,12 +119,7 @@ def get_proxyd_config(
 
     # apply customizations
     if observability_helper.enabled:
-        metrics_port = (
-            proxyd_params.metrics_port
-            if hasattr(proxyd_params, "metrics_port")
-            else METRICS_PORT_NUM
-        )
-        observability.expose_metrics_port(ports, port_num=metrics_port)
+        observability.expose_metrics_port(ports, port_num=METRICS_PORT_NUM)
 
     cmd += proxyd_params.extra_params
 
