@@ -37,7 +37,7 @@ DEFAULT_PROPOSER_IMAGES = {
 }
 
 DEFAULT_PROXYD_IMAGES = {
-    "proxyd": "us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd:v4.14.2",
+    "proxyd": "us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd:v4.14.5",
 }
 
 DEFAULT_SIDECAR_IMAGES = {
