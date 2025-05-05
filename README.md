@@ -133,31 +133,8 @@ optimism_package:
       image: "grafana/grafana:11.5.0"
   # Interop configuration
   interop:
-    # Interop can be enabled and disabled using this flag
-    # 
-    # By default, interop will be enabled if there is at least one interop set specified
+    # Whether or not to enable interop mode
     enabled: false
-    # A list of interop sets - connected L2 chains
-    # 
-    # If left empty, interop is disabled
-    sets: 
-        # Optional human-readable name for this interop set
-      - name: "interop-set-0"
-        # List of L2 network_ids that participate in this set
-        # 
-        # Please refer to chains[].network_params.network_id for more information
-        participants: ["2151908"]
-        # Supervisor overrides for this particular interop set
-        # 
-        # Leave empty to use the default supervisor configuration
-        supervisor_params:
-        # Interop set can be disabled for ease of local development
-        # 
-        # Defaults to true
-        enabled: true
-      - name: "interop-set-1"
-        # "*" can be used to quickly add all networks into one interop set
-        participants: "*"
     # Default supervisor configuration
     supervisor_params:
       # The Docker image that should be used for the supervisor; leave blank to use the default op-supervisor image
@@ -433,23 +410,6 @@ optimism_package:
         # A list of optional extra params that will be passed to the batcher container for modifying its behaviour
         extra_params: []
 
-      # Default challenger configuration
-      challenger_params:
-        # Whether or not to enable the challenger
-        enabled: true
-
-        # The Docker image that should be used for the challenger; leave blank to use the default op-challenger image
-        image: ""
-
-        # A list of optional extra params that will be passed to the challenger container for modifying its behaviour
-        extra_params: []
-
-        # Path to folder containing cannon prestate-proof.json file
-        cannon_prestates_path: "static_files/prestates"
-
-        # Base URL to absolute prestates to use when generating trace data.
-        cannon_prestates_url: ""
-
       # Default proposer configuration
       proposer_params:
         # The Docker image that should be used for the proposer; leave blank to use the default op-proposer image
@@ -499,6 +459,36 @@ optimism_package:
           - "--addr=0.0.0.0"
           - "--port=3100"
           - "--log.level=debug"
+
+  challengers:
+    my-challenger:
+      # Whether this challenger is active
+      enabled: true
+
+      # The Docker image that should be used for the challenger; leave blank to use the default op-challenger image
+      image: ""
+
+      # List of L2 chains that this challenger is connected to
+      # 
+      # This field accepts several configuration types:
+      # 
+      # A list of network IDs, in which case the challenger will connect to all the nodes in these network
+      participants: ["2151908"]
+
+      # OR "*" meaning the challenger will connect to all nodes of all L2 networks
+      participants: "*"
+
+      # A list of optional extra params that will be passed to the challenger container for modifying its behaviour
+      extra_params: []
+
+      # Path to folder containing cannon prestate-proof.json file
+      cannon_prestates_path: "static_files/prestates"
+
+      # OR Base URL to absolute prestates to use when generating trace data.
+      cannon_prestates_url: ""
+
+      # Directory in which the challenger will store its data
+      datadir: "/data/op-challenger/op-challenger-data"
 
   # L2 contract deployer configuration - used for all L2 networks.
   # The docker image that should be used for the L2 contract deployer.
