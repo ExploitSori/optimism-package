@@ -7,7 +7,7 @@ postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 util = import_module("../util.star")
 
 IMAGE_NAME_BLOCKSCOUT = "blockscout/blockscout-optimism:6.8.0"
-IMAGE_NAME_BLOCKSCOUT_VERIF = "ghcr.io/blockscout/smart-contract-verifier:v1.9.0"
+IMAGE_NAME_BLOCKSCOUT_VERIF = "ghcr.io/blockscout/smart-contract-verifier:v1.9.0-arm"
 
 SERVICE_NAME_BLOCKSCOUT = "op-blockscout"
 
